@@ -1,0 +1,16 @@
+database {
+  driver = "org.postgresql.Driver"
+  url = "jdbc:postgresql://localhost:5432/statistic"
+  user = "postgres"
+  password = ""
+}
+
+rabbitmq {
+  host = "rabbit.host"
+  port = 5672
+  username = "guest"
+  password = "guest"
+  exchange = "exchange"
+  queue = "queue"
+  routing-key = ""
+}
