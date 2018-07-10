@@ -1,6 +1,6 @@
 package rabbit
 
-import app.Account
+import app.StatisticAccount
 import app.Application.{executionContext, transactor}
 import com.typesafe.scalalogging.LazyLogging
 import rabbit.Consumer.Message
@@ -12,7 +12,7 @@ class Adwords extends LazyLogging {
 
   val dataRepository = new DataRepository()
 
-  def process(account: Account, message: Consumer.Message): Future[Unit] = {
+  def process(account: StatisticAccount, message: Consumer.Message): Future[Unit] = {
     message match {
       case Message(_, id, "campaigns", "downloaded", _, _, _) =>
         dataRepository.saveAdwordsCampaign(account, id)

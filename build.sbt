@@ -8,17 +8,20 @@ scalaVersion := "2.12.6"
 
 val versions = Map(
   "akka" -> "2.5.13",
+  "akka-rabbitmq" -> "5.0.0",
   "circe" -> "0.9.3",
   "doobie" -> "0.5.3",
   "logback-classic" -> "1.1.3",
   "scala-logging" -> "3.9.0",
-  "akka-rabbitmq" -> "5.0.0",
   "amqp-client" -> "5.3.0",
   "pureconfig" -> "0.9.1"
 )
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % versions("logback-classic") % Runtime
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % versions("scala-logging")
+
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.5.13"
+libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.5.13"
 
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
@@ -39,3 +42,6 @@ libraryDependencies += "com.rabbitmq" % "amqp-client" % versions("amqp-client")
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+
+mainClass in assembly := Some("app.Application")
+assemblyJarName in assembly := "argos-import.jar"

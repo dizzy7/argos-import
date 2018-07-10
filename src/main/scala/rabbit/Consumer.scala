@@ -1,7 +1,7 @@
 package rabbit
 
 import app.Application.{executionContext, transactor}
-import app.{Account, AdSystem}
+import app.{ContextSystem, StatisticAccount}
 import com.rabbitmq.client._
 import com.typesafe.scalalogging.LazyLogging
 import io.circe.generic.auto._
@@ -28,17 +28,18 @@ class Consumer(channel: Channel) extends DefaultConsumer(channel) with LazyLoggi
     Future {
       val messageString = new String(body, "UTF-8")
 
-      val parseResult: Either[Exception, (Account, Message)] = for {
+      val parseResult: Either[Exception, (StatisticAccount, Message)] = for {
         message <- decode[Message](messageString)
-        adSystem = AdSystem.withName(message.accountId.adSystem)
+        adSystem <- ContextSystem(message.accountId.adSystem)
+          .toRight(new RuntimeException("Неизвестная система: " + message.accountId.adSystem))
         accountId <- accountRepository.findAccountId(message.accountId.accountId, adSystem)
           .toRight(new RuntimeException("Аккаунт не найден в базе: " + message.accountId.accountId))
-      } yield (Account(accountId, adSystem), message)
+      } yield (StatisticAccount(accountId, adSystem), message)
 
       val resultF = parseResult match {
-        case Right((account@Account(_, AdSystem.Direct), message)) =>
+        case Right((account@StatisticAccount(_, ContextSystem.Direct), message)) =>
           direct.process(account, message)
-        case Right((account@Account(_, AdSystem.Adwords), message)) =>
+        case Right((account@StatisticAccount(_, ContextSystem.Adwords), message)) =>
           adwords.process(account, message)
         case Right(m) => Future {
           logger.error("Неизвестный тип аккаунта: " + m.toString())

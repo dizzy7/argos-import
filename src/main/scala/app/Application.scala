@@ -38,8 +38,7 @@ object Application extends App with LazyLogging {
   val accountRepository = new AccountRepository
   val dataRepository = new DataRepository
 
-  //channel.exchangeDeclare(exchangeName, BuiltinExchangeType.FANOUT, true)
-  //  channel.basicQos(100)
+  channel.basicQos(100)
   channel.queueDeclare(queueName, true, false, true, null)
   channel.queueBind(queueName, exchangeName, routingKey)
   channel.basicConsume(queueName, false, new Consumer(channel))
