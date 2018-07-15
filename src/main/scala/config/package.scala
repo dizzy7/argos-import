@@ -1,7 +1,6 @@
 import com.typesafe.config.ConfigFactory
 
 package object config {
-
   case class DatabaseConfig(driver: String, url: String, user: String, password: String)
 
   case class RabbitmqConfig(

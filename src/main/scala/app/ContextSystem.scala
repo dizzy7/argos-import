@@ -11,4 +11,6 @@ object ContextSystem {
     case Adwords.`name` => Some(Adwords)
     case _ => None
   }
+
+  val systems: Seq[ContextSystem] = List(Direct, Adwords)
 }

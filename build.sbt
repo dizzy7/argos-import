@@ -7,13 +7,13 @@ scalacOptions += "-Ypartial-unification" // 2.11.9+
 scalaVersion := "2.12.6"
 
 val versions = Map(
-  "akka" -> "2.5.13",
+  "alpakka" -> "0.20",
+  "akka" -> "2.5.14",
   "akka-rabbitmq" -> "5.0.0",
   "circe" -> "0.9.3",
   "doobie" -> "0.5.3",
   "logback-classic" -> "1.1.3",
   "scala-logging" -> "3.9.0",
-  "amqp-client" -> "5.3.0",
   "pureconfig" -> "0.9.1"
 )
 
@@ -38,10 +38,7 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "com.github.pureconfig" %% "pureconfig" % versions("pureconfig")
 
-libraryDependencies += "com.rabbitmq" % "amqp-client" % versions("amqp-client")
-
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+libraryDependencies += "com.lightbend.akka" %% "akka-stream-alpakka-amqp" % versions("alpakka")
 
 mainClass in assembly := Some("app.Application")
 assemblyJarName in assembly := "argos-import.jar"
