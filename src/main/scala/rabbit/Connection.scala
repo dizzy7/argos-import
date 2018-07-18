@@ -1,13 +1,10 @@
 package rabbit
 
-import akka.{Done, NotUsed}
+import akka.NotUsed
 import akka.stream.alpakka.amqp._
-import akka.stream.alpakka.amqp.scaladsl.{AmqpSink, AmqpSource, CommittableIncomingMessage}
-import akka.stream.scaladsl.{Sink, Source}
-import akka.util.ByteString
+import akka.stream.alpakka.amqp.scaladsl.{AmqpSource, CommittableIncomingMessage}
+import akka.stream.scaladsl.Source
 import config.RabbitmqConfig
-
-import scala.concurrent.Future
 
 class Connection(config: RabbitmqConfig) {
   private val queueDeclaration = QueueDeclaration(config.queue).withAutoDelete(true)

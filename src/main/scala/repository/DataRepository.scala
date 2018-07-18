@@ -1,7 +1,7 @@
 package repository
 
-import app.StatisticAccount
 import app.Application.executionContext
+import app.StatisticAccount
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import doobie.implicits._
