@@ -1,4 +1,11 @@
-database {
+data-database {
+  driver = "org.postgresql.Driver"
+  url = "jdbc:postgresql://localhost:5432/statistic"
+  user = "postgres"
+  password = ""
+}
+
+meta-database {
   driver = "org.postgresql.Driver"
   url = "jdbc:postgresql://localhost:5432/statistic"
   user = "postgres"

@@ -3,18 +3,19 @@ package stream
 import akka.stream.alpakka.amqp.scaladsl.CommittableIncomingMessage
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
-import app.Application.{executionContext, transactor}
 import app.ContextSystem.{Adwords, Direct}
 import app.{ContextSystem, StatisticAccount}
+import com.typesafe.scalalogging.LazyLogging
 import config.RabbitmqConfig
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import rabbit.Connection
 import repository.{AccountRepository, DataRepository}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object ImportFlow {
+object ImportFlow extends LazyLogging {
 
   case class Message(
     accountId: AccountInfo,
@@ -47,7 +48,7 @@ object ImportFlow {
     })
 
   val findStatisticAccount: Flow[DecodedMessage, DecodedMessageWithAccount, NotUsed] =
-    Flow[DecodedMessage].mapAsync[DecodedMessageWithAccount](4) {
+    Flow[DecodedMessage].mapAsync[DecodedMessageWithAccount](12) {
       case (m, Right(message)) =>
         val systemOption = ContextSystem(message.accountId.adSystem)
         systemOption match {
@@ -64,7 +65,7 @@ object ImportFlow {
     }
 
   def processSystem: Flow[DecodedMessageWithAccount, FinalResult, NotUsed] =
-    Flow[DecodedMessageWithAccount].mapAsync[FinalResult](4) {
+    Flow[DecodedMessageWithAccount].mapAsync[FinalResult](12) {
       case (msg, Left(e)) => Future.successful((msg, Left(e)))
       case (msg, Right(message@(_: Message, StatisticAccount(_, Direct)))) =>
         directProcess(message).map(u => (msg, Right()))
@@ -107,8 +108,12 @@ object ImportFlow {
     Sink.foreach[FinalResult] { result =>
       val msg = result._1
       result._2 match  {
-        case Right(_) => msg.ack()
-        case Left(e) => msg.nack(requeue = false)
+        case Right(_) =>
+          logger.info("Ok")
+          msg.ack()
+        case Left(e) =>
+          logger.error(e.getMessage)
+          msg.nack(requeue = false)
       }
     }
 }

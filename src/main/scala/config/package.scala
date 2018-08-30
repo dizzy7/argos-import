@@ -13,7 +13,7 @@ package object config {
     routingKey: String
   )
 
-  case class Config(database: DatabaseConfig, rabbitmq: RabbitmqConfig)
+  case class Config(metaDatabase: DatabaseConfig, dataDatabase: DatabaseConfig, rabbitmq: RabbitmqConfig)
 
   object Config {
 

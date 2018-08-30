@@ -1,15 +1,17 @@
 package repository
 
-import app.Application.executionContext
-import app.StatisticAccount
+import app.{Application, StatisticAccount}
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import doobie.implicits._
-import doobie.util.transactor.Transactor
+import doobie.util.transactor.Transactor.Aux
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DataRepository(implicit transactor: Transactor[IO]) extends LazyLogging {
+class DataRepository extends LazyLogging {
+  implicit val transactor: Aux[IO, Unit] = Application.dataTransactor
+
   def saveDirectCampaign(account: StatisticAccount, campaignId: Long): Future[Unit] = {
     val query =
       sql"""INSERT INTO data.yandex_direct_argos
