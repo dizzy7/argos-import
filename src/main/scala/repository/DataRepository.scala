@@ -1,17 +1,13 @@
 package repository
 
 import app.{Application, StatisticAccount}
-import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import doobie.implicits._
-import doobie.util.transactor.Transactor.Aux
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DataRepository extends LazyLogging {
-  implicit val transactor: Aux[IO, Unit] = Application.dataTransactor
-
   def saveDirectCampaign(account: StatisticAccount, campaignId: Long): Future[Unit] = {
     val query =
       sql"""INSERT INTO data.yandex_direct_argos
@@ -21,14 +17,14 @@ class DataRepository extends LazyLogging {
       SELECT 1 FROM data.yandex_direct_argos WHERE account_id=${account.id} AND campaign_id=$campaignId
       )""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 
   def deleteDirectCampaign(account: StatisticAccount, campaignId: Long): Future[Unit] = {
     val query =
       sql"""DELETE FROM data.yandex_direct_argos WHERE account_id=${account.id} AND campaign_id=$campaignId""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 
   def saveDirectKeyword(account: StatisticAccount, campaignId: Long, adGroupId: Long, keywordId: Long): Future[Unit] = {
@@ -41,14 +37,14 @@ class DataRepository extends LazyLogging {
                   WHERE account_id=${account.id} AND keyword_id=$keywordId
               )""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 
   def deleteDirectKeyword(account: StatisticAccount, keywordId: Long): Future[Unit] = {
     val query =
       sql"""DELETE FROM data.yandex_direct_argos WHERE account_id=${account.id} AND keyword_id=$keywordId""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 
   def saveAdwordsCampaign(account: StatisticAccount, campaignId: Long): Future[Unit] = {
@@ -60,14 +56,14 @@ class DataRepository extends LazyLogging {
       SELECT 1 FROM data.google_adwords_argos WHERE account_id=${account.id} AND campaign_id=$campaignId
       )""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 
   def deleteAdwordsCampaign(account: StatisticAccount, campaignId: Long): Future[Unit] = {
     val query =
       sql"""DELETE FROM data.google_adwords_argos WHERE account_id=${account.id} AND campaign_id=$campaignId""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 
   def saveAdwordsKeyword(account: StatisticAccount, campaignId: Long, adGroupId: Long, keywordId: Long): Future[Unit] = {
@@ -80,13 +76,13 @@ class DataRepository extends LazyLogging {
                   WHERE account_id=${account.id} AND ad_group_id=$adGroupId AND keyword_id=$keywordId
               )""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 
   def deleteAdwordsKeyword(account: StatisticAccount, adGroupId: Long, keywordId: Long): Future[Unit] = {
     val query =
       sql"""DELETE FROM data.google_adwords_argos WHERE account_id=${account.id} AND ad_group_id=$adGroupId AND keyword_id=$keywordId""".update.run
 
-    query.transact(transactor).unsafeToFuture.map(_ => ())
+    query.transact(Application.dataTransactor).unsafeToFuture.map(_ => ())
   }
 }

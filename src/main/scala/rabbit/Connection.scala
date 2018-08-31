@@ -7,7 +7,9 @@ import akka.stream.scaladsl.Source
 import config.RabbitmqConfig
 
 class Connection(config: RabbitmqConfig) {
-  private val queueDeclaration = QueueDeclaration(config.queue).withAutoDelete(true)
+  private val queueDeclaration = QueueDeclaration(config.queue)
+    .withDurable(false)
+    .withArguments(("x-message-ttl", 600000.asInstanceOf[AnyRef]))
   private val bindingDeclaration = BindingDeclaration(config.queue, config.exchange)
   private val connectionProvider = AmqpDetailsConnectionProvider(config.host, config.port)
     .withAutomaticRecoveryEnabled(true)
