@@ -1,5 +1,7 @@
 package stream
 
+import akka.stream.ActorAttributes.supervisionStrategy
+import akka.stream.Supervision
 import akka.stream.alpakka.amqp.scaladsl.CommittableIncomingMessage
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
@@ -36,6 +38,12 @@ object ImportFlow extends LazyLogging {
   val accountRepository = new AccountRepository()
   val dataRepository = new DataRepository()
 
+  val decider: Supervision.Decider = { e =>
+    logger.error(e.toString)
+    Supervision.Resume
+  }
+
+
   def queueSource(config: RabbitmqConfig): Source[CommittableIncomingMessage, NotUsed] = {
     val connection = new Connection(config)
     connection.createSource()
@@ -45,10 +53,10 @@ object ImportFlow extends LazyLogging {
     Flow[CommittableIncomingMessage].map[DecodedMessage]({ m =>
       val messageString = m.message.bytes.decodeString("UTF-8")
       (m, decode[Message](messageString))
-    })
+    }).withAttributes(supervisionStrategy(decider))
 
   val findStatisticAccount: Flow[DecodedMessage, DecodedMessageWithAccount, NotUsed] =
-    Flow[DecodedMessage].mapAsync[DecodedMessageWithAccount](12) {
+    Flow[DecodedMessage].mapAsync[DecodedMessageWithAccount](30) {
       case (m, Right(message)) =>
         val systemOption = ContextSystem(message.accountId.adSystem)
         systemOption match {
@@ -62,17 +70,17 @@ object ImportFlow extends LazyLogging {
         }
       case (m, Left(e)) =>
         Future.successful((m, Left(e)))
-    }
+    }.withAttributes(supervisionStrategy(decider))
 
   def processSystem: Flow[DecodedMessageWithAccount, FinalResult, NotUsed] =
-    Flow[DecodedMessageWithAccount].mapAsync[FinalResult](12) {
+    Flow[DecodedMessageWithAccount].mapAsync[FinalResult](30) {
       case (msg, Left(e)) => Future.successful((msg, Left(e)))
       case (msg, Right(message@(_: Message, StatisticAccount(_, Direct)))) =>
         directProcess(message).map(u => (msg, Right()))
       case (msg, Right(message@(_: Message, StatisticAccount(_, Adwords)))) =>
         adwordsProcess(message).map(u => (msg, Right()))
       case (msg, _) => Future.successful((msg, Left(new RuntimeException("Не найден обработчик для сообщения"))))
-    }
+    }.withAttributes(supervisionStrategy(decider))
 
   def directProcess(message: (Message, StatisticAccount)): Future[Unit] = {
     message match {
@@ -107,9 +115,8 @@ object ImportFlow extends LazyLogging {
   val ackSink: Sink[FinalResult, Future[Done]] =
     Sink.foreach[FinalResult] { result =>
       val msg = result._1
-      result._2 match  {
+      result._2 match {
         case Right(_) =>
-          logger.info("Ok")
           msg.ack()
         case Left(e) =>
           logger.error(e.getMessage)

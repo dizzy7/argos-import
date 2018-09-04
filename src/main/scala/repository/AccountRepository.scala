@@ -16,10 +16,8 @@ class AccountRepository extends LazyLogging {
     val source = adSystemSource(adSystem)
     accounts.get((adSystem, login)) match {
       case Some(optionId) =>
-        logger.info("Account hit")
         Future.successful(optionId)
       case None =>
-        logger.info("Account miss")
         val query = sql"SELECT id FROM account WHERE login=$login AND source=$source".query[Long].option
         query.transact(Application.metaTransactor).unsafeToFuture().map { result =>
           accounts((adSystem, login)) = result

@@ -27,6 +27,15 @@ object Application extends App with LazyLogging {
     config.dataDatabase.password
   ).unsafeRunSync()
 
+  metaTransactor.configure({ f =>
+    f.getHikariConfigMXBean.setMaximumPoolSize(30)
+    IO.unit
+  })
+  dataTransactor.configure({ f =>
+    f.getHikariConfigMXBean.setMaximumPoolSize(30)
+    IO.unit
+  })
+
   implicit val system: ActorSystem = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
