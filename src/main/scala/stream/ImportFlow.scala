@@ -43,7 +43,6 @@ object ImportFlow extends LazyLogging {
     Supervision.Resume
   }
 
-
   def queueSource(config: RabbitmqConfig): Source[CommittableIncomingMessage, NotUsed] = {
     val connection = new Connection(config)
     connection.createSource()
@@ -56,7 +55,7 @@ object ImportFlow extends LazyLogging {
     }).withAttributes(supervisionStrategy(decider))
 
   val findStatisticAccount: Flow[DecodedMessage, DecodedMessageWithAccount, NotUsed] =
-    Flow[DecodedMessage].mapAsync[DecodedMessageWithAccount](30) {
+    Flow[DecodedMessage].mapAsyncUnordered[DecodedMessageWithAccount](30) {
       case (m, Right(message)) =>
         val systemOption = ContextSystem(message.accountId.adSystem)
         systemOption match {
@@ -73,7 +72,7 @@ object ImportFlow extends LazyLogging {
     }.withAttributes(supervisionStrategy(decider))
 
   def processSystem: Flow[DecodedMessageWithAccount, FinalResult, NotUsed] =
-    Flow[DecodedMessageWithAccount].mapAsync[FinalResult](30) {
+    Flow[DecodedMessageWithAccount].mapAsyncUnordered[FinalResult](30) {
       case (msg, Left(e)) => Future.successful((msg, Left(e)))
       case (msg, Right(message@(_: Message, StatisticAccount(_, Direct)))) =>
         directProcess(message).map(u => (msg, Right()))
