@@ -20,6 +20,6 @@ class Connection(config: RabbitmqConfig) {
     AmqpSource.committableSource(
       NamedQueueSourceSettings(connectionProvider, config.queue)
         .withDeclarations(queueDeclaration, bindingDeclaration),
-      bufferSize = 100
+      bufferSize = 1000
     )
 }

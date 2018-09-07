@@ -43,5 +43,6 @@ object Application extends App with LazyLogging {
     .via(ImportFlow.decodeJson)
     .via(ImportFlow.findStatisticAccount)
     .via(ImportFlow.processSystem)
+    .via(ImportFlow.ackFlow)
     .runWith(ImportFlow.ackSink)
 }

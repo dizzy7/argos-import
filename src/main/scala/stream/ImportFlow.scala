@@ -55,7 +55,7 @@ object ImportFlow extends LazyLogging {
     }).withAttributes(supervisionStrategy(decider))
 
   val findStatisticAccount: Flow[DecodedMessage, DecodedMessageWithAccount, NotUsed] =
-    Flow[DecodedMessage].mapAsyncUnordered[DecodedMessageWithAccount](30) {
+    Flow[DecodedMessage].mapAsyncUnordered[DecodedMessageWithAccount](60) {
       case (m, Right(message)) =>
         val systemOption = ContextSystem(message.accountId.adSystem)
         systemOption match {
@@ -71,8 +71,8 @@ object ImportFlow extends LazyLogging {
         Future.successful((m, Left(e)))
     }.withAttributes(supervisionStrategy(decider))
 
-  def processSystem: Flow[DecodedMessageWithAccount, FinalResult, NotUsed] =
-    Flow[DecodedMessageWithAccount].mapAsyncUnordered[FinalResult](30) {
+  val processSystem: Flow[DecodedMessageWithAccount, FinalResult, NotUsed] =
+    Flow[DecodedMessageWithAccount].mapAsyncUnordered[FinalResult](60) {
       case (msg, Left(e)) => Future.successful((msg, Left(e)))
       case (msg, Right(message@(_: Message, StatisticAccount(_, Direct)))) =>
         directProcess(message).map(u => (msg, Right()))
@@ -111,8 +111,8 @@ object ImportFlow extends LazyLogging {
     }
   }
 
-  val ackSink: Sink[FinalResult, Future[Done]] =
-    Sink.foreach[FinalResult] { result =>
+  val ackFlow: Flow[FinalResult, Done, NotUsed] =
+    Flow[FinalResult].mapAsyncUnordered(60) { result =>
       val msg = result._1
       result._2 match {
         case Right(_) =>
@@ -122,4 +122,6 @@ object ImportFlow extends LazyLogging {
           msg.nack(requeue = false)
       }
     }
+
+  val ackSink: Sink[Any, Future[Done]] = Sink.ignore
 }
