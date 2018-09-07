@@ -8,8 +8,7 @@ scalaVersion := "2.12.6"
 
 val versions = Map(
   "alpakka" -> "0.20",
-  "akka" -> "2.5.14",
-  "akka-rabbitmq" -> "5.0.0",
+  "akka" -> "2.5.16",
   "circe" -> "0.9.3",
   "doobie" -> "0.5.3",
   "logback-classic" -> "1.1.3",
@@ -20,8 +19,8 @@ val versions = Map(
 libraryDependencies += "ch.qos.logback" % "logback-classic" % versions("logback-classic") % Runtime
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % versions("scala-logging")
 
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.5.13"
-libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.5.13"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % versions("akka")
+libraryDependencies += "com.typesafe.akka" %% "akka-stream" % versions("akka")
 
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
